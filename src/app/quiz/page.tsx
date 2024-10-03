@@ -1,19 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { ArrowLeft, BarChart2, Clock } from 'lucide-react';
-import { toast } from 'sonner';
+import { AlertCircle } from 'lucide-react';
+import { useRouter,useSearchParams } from 'next/navigation';
+import { useEffect,useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { AlertCircle } from 'lucide-react';
 
 interface Question {
   id: number;

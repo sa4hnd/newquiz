@@ -1,45 +1,33 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Select } from '@/components/ui/select';
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function AddQuestionPage() {
   const [text, setText] = useState('');
   const [options, setOptions] = useState(['', '', '', '']);
   const [answer, setAnswer] = useState('');
-  const [subjectId, setSubjectId] = useState('');
-  const [yearId, setYearId] = useState('');
-  const [courseId, setCourseId] = useState('');
-  const router = useRouter();
+  const [_subjectId, setSubjectId] = useState('');
+  const [_yearId, setYearId] = useState('');
+  const [_courseId, setCourseId] = useState('');
+  const _router = useRouter();
 
   const handleOptionChange = (index: number, value: string) => {
-    const newOptions = [...options];
-    newOptions[index] = value;
-    setOptions(newOptions);
+    setOptions((prev) => prev.map((opt, i) => (i === index ? value : opt)));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await fetch('/api/questions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text,
-        options: JSON.stringify(options),
-        answer,
-        subjectId: parseInt(subjectId),
-        yearId: parseInt(yearId),
-        courseId: parseInt(courseId),
-      }),
-    });
-
-    if (response.ok) {
-      router.push('/admin/questions');
-    } else {
-      console.error('Failed to add question');
-    }
+    // Submit logic here
   };
 
   return (
@@ -70,26 +58,35 @@ export default function AddQuestionPage() {
           placeholder='Correct answer'
           className='w-full bg-white bg-opacity-20 text-white rounded-2xl py-3 px-4'
         />
-        <Select
-          value={subjectId}
-          onChange={(e) => setSubjectId(e.target.value)}
-          placeholder='Select Subject'
-        >
-          {/* Fetch and map subjects here */}
+        <Select onValueChange={(value) => setSubjectId(value)}>
+          <SelectTrigger className='w-full bg-white bg-opacity-20 text-white rounded-2xl py-3 px-4'>
+            <SelectValue placeholder='Select Subject' />
+          </SelectTrigger>
+          <SelectContent>
+            {/* Fetch and map subjects here */}
+            <SelectItem value='1'>Subject 1</SelectItem>
+            <SelectItem value='2'>Subject 2</SelectItem>
+          </SelectContent>
         </Select>
-        <Select
-          value={yearId}
-          onChange={(e) => setYearId(e.target.value)}
-          placeholder='Select Year'
-        >
-          {/* Fetch and map years here */}
+        <Select onValueChange={(value) => setYearId(value)}>
+          <SelectTrigger className='w-full bg-white bg-opacity-20 text-white rounded-2xl py-3 px-4'>
+            <SelectValue placeholder='Select Year' />
+          </SelectTrigger>
+          <SelectContent>
+            {/* Fetch and map years here */}
+            <SelectItem value='1'>2023</SelectItem>
+            <SelectItem value='2'>2022</SelectItem>
+          </SelectContent>
         </Select>
-        <Select
-          value={courseId}
-          onChange={(e) => setCourseId(e.target.value)}
-          placeholder='Select Course'
-        >
-          {/* Fetch and map courses here */}
+        <Select onValueChange={(value) => setCourseId(value)}>
+          <SelectTrigger className='w-full bg-white bg-opacity-20 text-white rounded-2xl py-3 px-4'>
+            <SelectValue placeholder='Select Course' />
+          </SelectTrigger>
+          <SelectContent>
+            {/* Fetch and map courses here */}
+            <SelectItem value='1'>Course 1</SelectItem>
+            <SelectItem value='2'>Course 2</SelectItem>
+          </SelectContent>
         </Select>
         <Button type='submit'>Add Question</Button>
       </form>

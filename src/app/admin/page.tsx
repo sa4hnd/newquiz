@@ -1,6 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -9,9 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
 
 interface Subject {
   id: number;
@@ -58,6 +59,10 @@ export default function AdminPage() {
       fetchQuestions();
     }
   }, [selectedSubject, selectedYear, selectedCourse]);
+
+  useEffect(() => {
+    fetchQuestions();
+  }, [fetchQuestions]);
 
   const fetchSubjects = async () => {
     const response = await fetch('/api/subjects');

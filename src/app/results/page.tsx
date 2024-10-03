@@ -1,16 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Home, RotateCcw, Share, Check, X } from 'lucide-react';
+import { Check, Home, RotateCcw, Share, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect,useState } from 'react';
 import { toast } from 'sonner';
 
 interface Question {
   id: number;
   text: string;
-  options: string[];
+  options: string;
   answer: string;
   userAnswer: string;
+}
+
+interface ParsedQuestion extends Omit<Question, 'options'> {
+  options: string[];
 }
 
 export default function ResultsPage() {
@@ -19,14 +23,13 @@ export default function ResultsPage() {
   const [showQuestions, setShowQuestions] = useState<
     'correct' | 'incorrect' | null
   >(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<ParsedQuestion[]>([]);
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<
     number | null
   >(null);
-
-  const score = parseInt(searchParams.get('score') || '0');
-  const total = parseInt(searchParams.get('total') || '1');
-  const percentage = parseInt(searchParams.get('percentage') || '0');
+  const [score, setScore] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [percentage, setPercentage] = useState(0);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -38,9 +41,9 @@ export default function ResultsPage() {
       const response = await fetch(
         `/api/questions?subjectId=${subjectId}&yearId=${yearId}&courseId=${courseId}`
       );
-      const data = await response.json();
+      const data: Question[] = await response.json();
 
-      const questionsWithUserAnswers = data.map(
+      const questionsWithUserAnswers: ParsedQuestion[] = data.map(
         (q: Question, index: number) => ({
           ...q,
           options: JSON.parse(q.options),
@@ -49,6 +52,9 @@ export default function ResultsPage() {
       );
 
       setQuestions(questionsWithUserAnswers);
+      setScore(parseInt(searchParams.get('score') || '0'));
+      setTotal(parseInt(searchParams.get('total') || '0'));
+      setPercentage(parseInt(searchParams.get('percentage') || '0'));
     };
 
     fetchQuestions();

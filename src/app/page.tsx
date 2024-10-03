@@ -1,16 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { GamepadIcon, Sparkles, TrendingUp, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import {
-  Menu,
-  User,
-  GamepadIcon,
-  Users,
-  Sparkles,
-  TrendingUp,
-  ChevronDown,
-} from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -35,13 +31,14 @@ interface Course {
 }
 
 export default function HomePage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [years, setYears] = useState<Year[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedCourse, setSelectedCourse] = useState<string>('');
-  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
@@ -74,11 +71,42 @@ export default function HomePage() {
     }
   };
 
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
+
+  if (!session) {
+    return null; // This will prevent any flash of unauthenticated content
+  }
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-purple-700 via-indigo-800 to-blue-900 p-6'>
-      <h1 className='text-white text-4xl font-bold mb-8 text-center'>
-        Welcome to Fergeh
-      </h1>
+      <header className='flex justify-between items-center mb-8'>
+        <h1 className='text-white text-2xl font-bold'>Fergeh Quiz</h1>
+        <div className='flex items-center'>
+          {session.user?.image && (
+            <Image
+              src={session.user.image}
+              alt='User profile'
+              width={40}
+              height={40}
+              className='rounded-full mr-4'
+            />
+          )}
+          <span className='text-white mr-4'>
+            Welcome, {session.user?.name || session.user?.email}
+          </span>
+          <Button onClick={() => signOut({ callbackUrl: '/login' })}>
+            Sign Out
+          </Button>
+        </div>
+      </header>
       <main className='space-y-8'>
         {/* User Stats */}
         <section className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-6'>
