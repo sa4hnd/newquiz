@@ -1,10 +1,19 @@
 'use client';
 
+<<<<<<< HEAD
 import Image from 'next/image';
 import { GamepadIcon, Sparkles, TrendingUp, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+=======
+import { GamepadIcon, Sparkles, Users, X } from 'lucide-react';
+import { UserIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+>>>>>>> temp-branch
 
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Subject {
   id: number;
@@ -39,6 +50,21 @@ export default function HomePage() {
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedCourse, setSelectedCourse] = useState<string>('');
+<<<<<<< HEAD
+=======
+  const router = useRouter();
+  const { user, signOut, hasAccess } = useAuth();
+  const [recentQuizzes, setRecentQuizzes] = useState([]);
+  const [userStats, setUserStats] = useState({
+    quizzesTaken: 0,
+    averageScore: 0,
+    streakDays: 0,
+  });
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [streakDay, setStreakDay] = useState(0);
+  const [canUpdateStreak, setCanUpdateStreak] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+>>>>>>> temp-branch
 
   useEffect(() => {
     async function fetchData() {
@@ -63,6 +89,68 @@ export default function HomePage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (user && hasAccess) {
+      const checkStreak = async () => {
+        if (user) {
+          try {
+            const response = await fetch(`/api/user-streak?userId=${user.id}`);
+            const data = await response.json();
+            setStreakDay(data.streakDays);
+            if (data.canUpdateStreak) {
+              setShowWelcomePopup(true);
+            }
+          } catch (error) {
+            console.error('Error checking streak:', error);
+          }
+        }
+      };
+
+      const fetchRecentQuizzes = async () => {
+        try {
+          const response = await fetch(`/api/user-stats?userId=${user.id}`);
+          const data = await response.json();
+          setRecentQuizzes(data.recentQuizzes);
+        } catch (error) {
+          console.error('Error fetching recent quizzes:', error);
+        }
+      };
+
+      checkStreak();
+      fetchRecentQuizzes();
+    }
+  }, [user, hasAccess]);
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (user) {
+        try {
+          const response = await fetch(`/api/user-stats?userId=${user.id}`);
+          const data = await response.json();
+          setUserStats(data);
+          setRecentQuizzes(data.recentQuizzes || []); // Set recent quizzes here
+        } catch (error) {
+          console.error('Error fetching user stats:', error);
+          toast.error('Failed to load user statistics');
+        }
+      }
+    };
+
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await fetch('/api/leaderboard');
+        const data = await response.json();
+        setLeaderboard(data);
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        toast.error('Failed to load leaderboard');
+      }
+    };
+
+    fetchUserStats();
+    fetchLeaderboard();
+  }, [user]);
+
   const handleStartQuiz = () => {
     if (selectedSubject && selectedYear && selectedCourse) {
       router.push(
@@ -71,6 +159,7 @@ export default function HomePage() {
     }
   };
 
+<<<<<<< HEAD
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
@@ -84,10 +173,31 @@ export default function HomePage() {
   if (!session) {
     return null; // This will prevent any flash of unauthenticated content
   }
+=======
+  const handleUpdateStreak = async () => {
+    if (user) {
+      try {
+        const response = await fetch('/api/user-streak', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setStreakDay(data.streakDays);
+        setShowWelcomePopup(false);
+        toast.success(data.message);
+      } catch (error) {
+        console.error('Error updating streak:', error);
+        toast.error('Failed to update streak');
+      }
+    }
+  };
+>>>>>>> temp-branch
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-purple-700 via-indigo-800 to-blue-900 p-6'>
       <header className='flex justify-between items-center mb-8'>
+<<<<<<< HEAD
         <h1 className='text-white text-2xl font-bold'>Fergeh Quiz</h1>
         <div className='flex items-center'>
           {session.user?.image && (
@@ -115,20 +225,82 @@ export default function HomePage() {
             <div className='bg-pink-500 bg-opacity-20 rounded-2xl p-4 text-center'>
               <p className='text-white text-2xl font-bold'>42</p>
               <p className='text-white text-sm'>Quizzes Taken</p>
+=======
+        <h1 className='text-white text-4xl font-bold'>Welcome to Fergeh</h1>
+        {user ? (
+          <Link href='/profile'>
+            <UserIcon className='text-white w-8 h-8 cursor-pointer' />
+          </Link>
+        ) : (
+          <Link href='/login'>
+            <Button className='bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-2 px-4 rounded-2xl transition-transform transform hover:scale-105'>
+              Sign In
+            </Button>
+          </Link>
+        )}
+      </header>
+
+      <main className='mt-8'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+          <div className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-6'>
+            <h2 className='text-white text-2xl font-bold mb-4'>
+              Your Progress
+            </h2>
+            <div className='grid grid-cols-2 gap-4 mb-8'>
+              <div className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm rounded-2xl p-4'>
+                <h3 className='text-white text-lg font-bold mb-2'>
+                  Quizzes Taken
+                </h3>
+                <p className='text-white text-3xl font-bold'>
+                  {userStats.quizzesTaken}
+                </p>
+              </div>
+              <div className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm rounded-2xl p-4'>
+                <h3 className='text-white text-lg font-bold mb-2'>
+                  Avg. Score
+                </h3>
+                <p className='text-white text-3xl font-bold'>
+                  {userStats.averageScore}%
+                </p>
+              </div>
+>>>>>>> temp-branch
             </div>
-            <div className='bg-blue-500 bg-opacity-20 rounded-2xl p-4 text-center'>
-              <p className='text-white text-2xl font-bold'>78%</p>
-              <p className='text-white text-sm'>Avg. Score</p>
-            </div>
-            <div className='bg-green-500 bg-opacity-20 rounded-2xl p-4 text-center'>
-              <p className='text-white text-2xl font-bold'>15</p>
-              <p className='text-white text-sm'>Streak Days</p>
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='bg-green-500 bg-opacity-20 rounded-xl p-4'>
+                <h3 className='text-white text-lg font-bold mb-2'>
+                  Streak Days
+                </h3>
+                <p className='text-white text-3xl font-bold'>{streakDay}</p>
+              </div>
+              <div className='bg-yellow-500 bg-opacity-20 rounded-xl p-4'>
+                <h3 className='text-white text-lg font-bold mb-2'>Your Rank</h3>
+                <p className='text-white text-3xl font-bold'>
+                  {leaderboard.findIndex((entry) => entry.id === user?.id) + 1}
+                </p>
+              </div>
             </div>
           </div>
-        </section>
+
+          <div className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-6'>
+            <h2 className='text-white text-2xl font-bold mb-4'>Leaderboard</h2>
+            <ul className='space-y-2'>
+              {leaderboard.slice(0, 10).map((entry, index) => (
+                <li
+                  key={entry.id}
+                  className='flex justify-between items-center bg-white bg-opacity-20 rounded-xl p-2'
+                >
+                  <span className='text-white font-bold'>
+                    {index + 1}. {entry.displayName}
+                  </span>
+                  <span className='text-white'>{entry.averageScore}%</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
 
         {/* Quiz Categories */}
-        <section className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-6'>
+        <section className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-6 mt-6'>
           <h2 className='text-white text-xl font-bold mb-4'>Quiz Categories</h2>
           <div className='space-y-4'>
             {/* Subject Dropdown */}
@@ -195,8 +367,8 @@ export default function HomePage() {
         </section>
 
         {/* Game Modes */}
-        <section>
-          <h2 className='text-white text-xl font-bold mb-4'>Game Modes</h2>
+        <section className='mb-8'>
+          <h2 className='text-white text-2xl font-bold mb-4'>Game Modes</h2>
           <div className='grid grid-cols-2 gap-4'>
             {[
               {
@@ -236,39 +408,48 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Leaderboard Preview */}
-        <section className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-6'>
-          <h2 className='text-white text-xl font-bold mb-4'>Leaderboard</h2>
-          <div className='space-y-4'>
-            {[
-              { name: 'Alex', score: 2500, rank: 1 },
-              { name: 'Sam', score: 2350, rank: 2 },
-              { name: 'Jordan', score: 2200, rank: 3 },
-            ].map((player) => (
-              <div
-                key={player.name}
-                className='flex items-center justify-between bg-white bg-opacity-20 rounded-xl p-3'
-              >
-                <div className='flex items-center'>
-                  <div className='bg-yellow-500 rounded-full w-8 h-8 flex items-center justify-center mr-3'>
-                    <span className='text-white font-bold'>{player.rank}</span>
-                  </div>
-                  <span className='text-white font-semibold'>
-                    {player.name}
-                  </span>
-                </div>
-                <div className='flex items-center'>
-                  <TrendingUp className='text-green-400 w-4 h-4 mr-2' />
-                  <span className='text-white font-bold'>{player.score}</span>
-                </div>
-              </div>
-            ))}
+        {user && hasAccess && (
+          <div className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-6 mt-6'>
+            <h2 className='text-white text-2xl font-bold mb-4'>
+              Recent Quiz Results
+            </h2>
+            {recentQuizzes.length > 0 ? (
+              <ul>
+                {recentQuizzes.map((quiz, index) => (
+                  <li key={index} className='text-white mb-2'>
+                    Score: {quiz.score} - Date:{' '}
+                    {new Date(quiz.createdAt).toLocaleDateString()}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className='text-white'>No recent quizzes taken.</p>
+            )}
           </div>
-          <button className='w-full mt-4 bg-white bg-opacity-20 text-white font-semibold py-2 rounded-xl transition-colors hover:bg-opacity-30'>
-            View Full Leaderboard
-          </button>
-        </section>
+        )}
       </main>
+
+      {showWelcomePopup && (
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+          <div className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-6 max-w-md w-full'>
+            <div className='flex justify-between items-center mb-4'>
+              <h2 className='text-white text-2xl font-bold'>Welcome Back!</h2>
+              <button
+                onClick={() => setShowWelcomePopup(false)}
+                className='text-white'
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <p className='text-white text-lg mb-4'>
+              You're on day {streakDay + 1} of your streak!
+            </p>
+            <Button onClick={handleUpdateStreak} className='w-full'>
+              Continue Streak
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

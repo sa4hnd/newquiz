@@ -17,14 +17,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { name } = body;
-
+    const { name } = await request.json();
     const subject = await prisma.subject.create({
       data: { name },
     });
-
-    return NextResponse.json(subject, { status: 201 });
+    return NextResponse.json(subject);
   } catch (error) {
     console.error('Error creating subject:', error);
     return NextResponse.json(

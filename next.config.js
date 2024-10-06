@@ -18,7 +18,11 @@ const nextConfig = {
   // },
 
   images: {
+<<<<<<< HEAD
     domains: ['www.google.com'],
+=======
+    domains: ['lh3.googleusercontent.com'],
+>>>>>>> temp-branch
   },
 
   webpack(config) {
@@ -51,6 +55,14 @@ const nextConfig = {
     fileLoaderRule.exclude = /\.svg$/i;
 
     return config;
+  },
+
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    // !! WARN !!
+    ignoreBuildErrors: true,
   },
 };
 

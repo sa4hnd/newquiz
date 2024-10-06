@@ -108,11 +108,11 @@ Create all necessary components for the quiz application, including but not limi
 
 This structure sets up a clear organization for your application and allows for easy scaling and maintenance. Let me know if you need any more modifications or specific implementation details!
 ```
- and this is what we did yesterday 
 
- hank you for providing the comprehensive update on your project. It's clear that you've made significant progress on the Fergeh quiz application. Here's a summary of the current state and structure of your project:
-The application now uses MySQL with Prisma for data storage and management.
-2. You've implemented key pages such as the admin dashboard, quiz page, results page, and error handling.
+and this is what we did yesterday
+
+hank you for providing the comprehensive update on your project. It's clear that you've made significant progress on the Fergeh quiz application. Here's a summary of the current state and structure of your project:
+The application now uses MySQL with Prisma for data storage and management. 2. You've implemented key pages such as the admin dashboard, quiz page, results page, and error handling.
 The UI is styled using Tailwind CSS with a dark theme and gradient backgrounds.
 You're using Shadcn UI components for consistent styling.
 The application handles subjects, years, courses, and questions.

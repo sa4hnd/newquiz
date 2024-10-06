@@ -14,3 +14,19 @@ export async function GET() {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const { name } = await request.json();
+    const year = await prisma.year.create({
+      data: { name },
+    });
+    return NextResponse.json(year);
+  } catch (error) {
+    console.error('Error creating year:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}

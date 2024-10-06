@@ -2,7 +2,12 @@
 
 import { Check, Home, RotateCcw, Share, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+<<<<<<< HEAD:src/app/results/page.tsx
 import { useEffect,useState } from 'react';
+=======
+import { useEffect, useState } from 'react';
+import Confetti from 'react-confetti';
+>>>>>>> temp-branch:src/app/quiz-results/page.tsx
 import { toast } from 'sonner';
 
 interface Question {
@@ -27,9 +32,17 @@ export default function ResultsPage() {
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<
     number | null
   >(null);
+<<<<<<< HEAD:src/app/results/page.tsx
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
   const [percentage, setPercentage] = useState(0);
+=======
+  const [showConfetti, setShowConfetti] = useState(true);
+
+  const score = parseInt(searchParams.get('score') || '0');
+  const total = parseInt(searchParams.get('total') || '1');
+  const percentage = parseInt(searchParams.get('percentage') || '0');
+>>>>>>> temp-branch:src/app/quiz-results/page.tsx
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -38,6 +51,7 @@ export default function ResultsPage() {
       const courseId = searchParams.get('courseId');
       const userAnswers = JSON.parse(searchParams.get('userAnswers') || '[]');
 
+<<<<<<< HEAD:src/app/results/page.tsx
       const response = await fetch(
         `/api/questions?subjectId=${subjectId}&yearId=${yearId}&courseId=${courseId}`
       );
@@ -55,10 +69,49 @@ export default function ResultsPage() {
       setScore(parseInt(searchParams.get('score') || '0'));
       setTotal(parseInt(searchParams.get('total') || '0'));
       setPercentage(parseInt(searchParams.get('percentage') || '0'));
+=======
+      try {
+        const response = await fetch(
+          `/api/questions?subjectId=${subjectId}&yearId=${yearId}&courseId=${courseId}`
+        );
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+          console.error('Expected an array of questions, but received:', data);
+          toast.error('Failed to load questions. Please try again.');
+          return;
+        }
+
+        const questionsWithUserAnswers = data.map(
+          (q: Question, index: number) => ({
+            ...q,
+            options: Array.isArray(q.options)
+              ? q.options
+              : JSON.parse(q.options),
+            userAnswer: userAnswers[index] || '',
+          })
+        );
+
+        setQuestions(questionsWithUserAnswers);
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+        toast.error('Failed to load questions. Please try again.');
+      }
+>>>>>>> temp-branch:src/app/quiz-results/page.tsx
     };
 
     fetchQuestions();
+
+    // Clear localStorage when results are shown
+    localStorage.removeItem('quizAnswers');
+
+    // Stop confetti after 5 seconds
+    const timer = setTimeout(() => setShowConfetti(false), 5000);
+    return () => clearTimeout(timer);
   }, [searchParams]);
+
+  const correctQuestions = questions.filter((q) => q.answer === q.userAnswer);
+  const incorrectQuestions = questions.filter((q) => q.answer !== q.userAnswer);
 
   const handleShowQuestions = (type: 'correct' | 'incorrect') => {
     setShowQuestions(type);
@@ -96,21 +149,18 @@ export default function ResultsPage() {
   };
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-700 via-indigo-800 to-blue-900 p-6 flex flex-col'>
-      <header className='flex justify-center items-center mb-8'>
-        <h1 className='text-white text-2xl font-bold'>Quiz Results</h1>
-      </header>
-
+    <div className='min-h-screen bg-gradient-to-br from-purple-700 via-indigo-800 to-blue-900 p-6'>
+      {showConfetti && <Confetti />}
       <main className='flex-grow flex flex-col justify-center'>
         <div className='bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-8 max-w-md mx-auto w-full'>
+          <h2 className='text-white text-3xl font-bold mb-4'>Quiz Results</h2>
           <div className='text-center mb-8'>
-            <h2 className='text-white text-4xl font-bold mb-2'>Great job!</h2>
-            <p className='text-white text-xl'>You scored</p>
-            <div className='text-6xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text my-4'>
+            <div className='text-6xl font-bold text-white mb-2'>
               {percentage}%
             </div>
             <p className='text-white text-xl'>
-              {score} out of {total} correct
+              You scored <span className='font-bold'>{score}</span> out of{' '}
+              <span className='font-bold'>{total}</span>
             </p>
           </div>
 
@@ -122,7 +172,9 @@ export default function ResultsPage() {
               }`}
             >
               <h3 className='text-white text-lg font-bold mb-2'>Correct</h3>
-              <p className='text-white text-3xl font-bold'>{score}</p>
+              <p className='text-white text-3xl font-bold'>
+                {correctQuestions.length}
+              </p>
             </button>
             <button
               onClick={() => handleShowQuestions('incorrect')}
@@ -131,7 +183,9 @@ export default function ResultsPage() {
               }`}
             >
               <h3 className='text-white text-lg font-bold mb-2'>Incorrect</h3>
-              <p className='text-white text-3xl font-bold'>{total - score}</p>
+              <p className='text-white text-3xl font-bold'>
+                {incorrectQuestions.length}
+              </p>
             </button>
           </div>
 

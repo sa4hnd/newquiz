@@ -1,10 +1,19 @@
 'use client';
 
+<<<<<<< HEAD
 import { ArrowLeft, BarChart2, Clock } from 'lucide-react';
 import { AlertCircle } from 'lucide-react';
 import { useRouter,useSearchParams } from 'next/navigation';
 import { useEffect,useState } from 'react';
 
+=======
+import { AlertCircle, ArrowLeft, BarChart2, Clock } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+import SubscriptionPrompt from '@/components/SubscriptionPrompt';
+>>>>>>> temp-branch
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,6 +23,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+<<<<<<< HEAD
+=======
+
+import { useAuth } from '@/contexts/AuthContext';
+>>>>>>> temp-branch
 
 interface Question {
   id: number;
@@ -23,30 +37,56 @@ interface Question {
 }
 
 export default function QuizPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const [showWarning, setShowWarning] = useState(false);
+  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
 
   useEffect(() => {
-    const fetchQuestions = async () => {
-      const subjectId = searchParams.get('subjectId');
-      const yearId = searchParams.get('yearId');
-      const courseId = searchParams.get('courseId');
+    if (!user) {
+      router.push('/login');
+    } else if (!user.hasAccess) {
+      setShowSubscriptionPrompt(true);
+    } else {
+      fetchQuestions();
+    }
+  }, [user, router, fetchQuestions]); // Add fetchQuestions to the dependency array
 
+  useEffect(() => {
+    // Load answers from localStorage when component mounts
+    const savedAnswers = localStorage.getItem('quizAnswers');
+    if (savedAnswers) {
+      setUserAnswers(JSON.parse(savedAnswers));
+    }
+  }, []);
+
+  const fetchQuestions = async () => {
+    try {
       const response = await fetch(
-        `/api/questions?subjectId=${subjectId}&yearId=${yearId}&courseId=${courseId}`
+        `/api/questions?subjectId=${searchParams.get(
+          'subjectId'
+        )}&yearId=${searchParams.get('yearId')}&courseId=${searchParams.get(
+          'courseId'
+        )}`
       );
+      if (!response.ok) {
+        throw new Error('Failed to fetch questions');
+      }
       const data = await response.json();
       setQuestions(data);
-    };
-
-    fetchQuestions();
-  }, [searchParams]);
+      setUserAnswers(new Array(data.length).fill(''));
+      setTimeLeft(600); // Reset timer when questions are loaded
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+      toast.error('Failed to load questions. Please try again.');
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -63,10 +103,13 @@ export default function QuizPage() {
   };
 
   const handleAnswer = (answer: string) => {
-    const newUserAnswers = [...userAnswers];
-    newUserAnswers[currentQuestionIndex] = answer;
-    setUserAnswers(newUserAnswers);
+    const newAnswers = [...userAnswers];
+    newAnswers[currentQuestionIndex] = answer;
+    setUserAnswers(newAnswers);
     setSelectedAnswer(answer);
+
+    // Save answers to localStorage
+    localStorage.setItem('quizAnswers', JSON.stringify(newAnswers));
   };
 
   const handleNext = () => {
@@ -84,9 +127,7 @@ export default function QuizPage() {
   };
 
   const handleFinish = () => {
-    const unansweredQuestions = questions.filter(
-      (_, index) => !userAnswers[index]
-    );
+    const unansweredQuestions = userAnswers.filter((answer) => answer === '');
     if (unansweredQuestions.length > 0) {
       setShowWarning(true);
     } else {
@@ -94,22 +135,59 @@ export default function QuizPage() {
     }
   };
 
-  const submitQuiz = () => {
+  const submitQuiz = async () => {
     const score = userAnswers.reduce((acc, answer, index) => {
       return acc + (answer === questions[index].answer ? 1 : 0);
     }, 0);
     const percentage = Math.round((score / questions.length) * 100);
 
-    router.push(
-      `/results?score=${score}&total=${
-        questions.length
-      }&percentage=${percentage}&subjectId=${searchParams.get(
-        'subjectId'
-      )}&yearId=${searchParams.get('yearId')}&courseId=${searchParams.get(
-        'courseId'
-      )}&userAnswers=${JSON.stringify(userAnswers)}`
-    );
+    try {
+      const response = await fetch('/api/quiz-results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          score,
+          total: questions.length,
+          percentage,
+          subjectId: searchParams.get('subjectId'),
+          yearId: searchParams.get('yearId'),
+          courseId: searchParams.get('courseId'),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit quiz results');
+      }
+
+      const data = await response.json();
+      console.log('Quiz result submitted:', data);
+
+      router.push(
+        `/quiz-results?score=${score}&total=${
+          questions.length
+        }&percentage=${percentage}&subjectId=${searchParams.get(
+          'subjectId'
+        )}&yearId=${searchParams.get('yearId')}&courseId=${searchParams.get(
+          'courseId'
+        )}&userAnswers=${JSON.stringify(userAnswers)}`
+      );
+    } catch (error) {
+      console.error('Error submitting quiz results:', error);
+      toast.error('Failed to submit quiz results. Please try again.');
+    }
   };
+
+  if (!user || !user.hasAccess) {
+    return (
+      <SubscriptionPrompt
+        isOpen={showSubscriptionPrompt}
+        onClose={() => router.push('/')}
+      />
+    );
+  }
 
   if (questions.length === 0) {
     return (
@@ -144,7 +222,7 @@ export default function QuizPage() {
         <div className='bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-3xl p-4 sm:p-8 max-w-4xl mx-auto w-full'>
           <div className='flex flex-col sm:flex-row justify-between items-center mb-6'>
             <h2 className='text-white text-xl sm:text-2xl font-bold mb-2 sm:mb-0'>
-              Question {currentQuestionIndex + 1} /{questions.length}
+              Question {currentQuestionIndex + 1} / {questions.length}
             </h2>
             <div className='flex items-center bg-[#8B4513] bg-opacity-70 rounded-full px-4 py-2'>
               <Clock className='text-white w-5 h-5 mr-2' />
