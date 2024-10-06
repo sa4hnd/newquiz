@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 
+// Update the QuizResult type definition
+type QuizResult = {
+  id: string;
+  createdAt: Date;
+  userId: string;
+  score: number;
+  // Add other relevant fields from your database schema
+};
+
 export async function GET(
   request: Request,
   { params }: { params: { uid: string } }
@@ -41,13 +50,13 @@ export async function GET(
   }
 }
 
-function calculateStreakDays(quizzes: any[]): number {
+function calculateStreakDays(quizzes: QuizResult[]): number {
   // Implement streak calculation logic
   // This is a placeholder implementation
   return quizzes.length > 0 ? Math.min(quizzes.length, 7) : 0;
 }
 
-async function calculateLeaderboardRank(userId: string): Promise<number> {
+async function calculateLeaderboardRank(_userId: string): Promise<number> {
   // Implement leaderboard rank calculation logic
   // This is a placeholder implementation
   const usersCount = await prisma.user.count();

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,17 +31,17 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       console.log('Attempting Google Sign-In');
-      const user = await signIn();
-      console.log('Sign-In successful, user:', user);
-      if (user) {
+      const firebaseUser = await signIn();
+      console.log('Sign-In successful, user:', firebaseUser);
+      if (firebaseUser) {
         console.log('Redirecting to home page');
         router.push('/');
       } else {
-        console.error('Sign in successful but no user returned');
+        console.error('Sign in failed or was cancelled');
+        toast.error('Sign in failed. Please try again.');
       }
     } catch (error) {
       console.error('Error signing in with Google:', error);
-      // Show error message to user
       toast.error('Failed to sign in with Google. Please try again.');
     }
   };

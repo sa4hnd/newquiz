@@ -78,8 +78,33 @@ export default function HomePage() {
 
   useEffect(() => {
     if (user && hasAccess) {
-      fetchRecentQuizzes();
+      const checkStreak = async () => {
+        if (user) {
+          try {
+            const response = await fetch(`/api/user-streak?userId=${user.id}`);
+            const data = await response.json();
+            setStreakDay(data.streakDays);
+            if (data.canUpdateStreak) {
+              setShowWelcomePopup(true);
+            }
+          } catch (error) {
+            console.error('Error checking streak:', error);
+          }
+        }
+      };
+
+      const fetchRecentQuizzes = async () => {
+        try {
+          const response = await fetch(`/api/user-stats?userId=${user.id}`);
+          const data = await response.json();
+          setRecentQuizzes(data.recentQuizzes);
+        } catch (error) {
+          console.error('Error fetching recent quizzes:', error);
+        }
+      };
+
       checkStreak();
+      fetchRecentQuizzes();
     }
   }, [user, hasAccess]);
 
@@ -112,31 +137,6 @@ export default function HomePage() {
     fetchUserStats();
     fetchLeaderboard();
   }, [user]);
-
-  const checkStreak = async () => {
-    if (user) {
-      try {
-        const response = await fetch(`/api/user-streak?userId=${user.id}`);
-        const data = await response.json();
-        setStreakDay(data.streakDays);
-        if (data.canUpdateStreak) {
-          setShowWelcomePopup(true);
-        }
-      } catch (error) {
-        console.error('Error checking streak:', error);
-      }
-    }
-  };
-
-  const fetchRecentQuizzes = async () => {
-    try {
-      const response = await fetch(`/api/user-stats?userId=${user.id}`);
-      const data = await response.json();
-      setRecentQuizzes(data.recentQuizzes);
-    } catch (error) {
-      console.error('Error fetching recent quizzes:', error);
-    }
-  };
 
   const handleStartQuiz = () => {
     if (selectedSubject && selectedYear && selectedCourse) {

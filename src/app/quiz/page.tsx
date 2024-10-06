@@ -45,7 +45,7 @@ export default function QuizPage() {
     } else {
       fetchQuestions();
     }
-  }, [user, router]);
+  }, [user, router, fetchQuestions]); // Add fetchQuestions to the dependency array
 
   useEffect(() => {
     // Load answers from localStorage when component mounts

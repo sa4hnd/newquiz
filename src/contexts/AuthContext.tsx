@@ -19,7 +19,7 @@ import { auth, googleProvider } from '@/lib/firebase';
 
 interface AuthContextType {
   user: (FirebaseUser & { id: string; isAdmin: boolean }) | null;
-  signIn: () => Promise<void>;
+  signIn: () => Promise<FirebaseUser | null>; // Update return type
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: {
@@ -78,12 +78,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const signIn = async () => {
+  const signIn = async (): Promise<FirebaseUser | null> => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+
+      // Sync user data with your backend
+      const response = await fetch('/api/auth/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firebaseUid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync user data with Prisma');
+      }
+
+      const userData = await response.json();
+      const updatedUser = {
+        ...firebaseUser,
+        id: userData.id,
+        isAdmin: userData.isAdmin,
+        hasAccess: userData.hasAccess,
+      };
+
+      setUser(updatedUser);
+      setHasAccess(userData.hasAccess);
+
+      return firebaseUser; // Return the Firebase user object
     } catch (error) {
-      console.error('Error signing in:', error);
-      throw error;
+      console.error('Error signing in with Google:', error);
+      return null;
     }
   };
 

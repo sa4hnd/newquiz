@@ -4,7 +4,7 @@ import { getAnalytics, logEvent } from 'firebase/analytics';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { app } from '@/lib/firebase';
+import { app, analytics } from '@/lib/firebase';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
